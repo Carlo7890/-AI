@@ -5,8 +5,8 @@ import re
 # CSV 불러오기
 @st.cache_data
 def load_data():
-    words_df = pd.read_csv("사고도구어_단어등급매핑.csv")
-    score_df = pd.read_csv("온독지수범위.csv")
+    words_df = pd.read_csv("사고도구어_단어등급매핑.csv", encoding='euc-kr')
+    score_df = pd.read_csv("온독지수범위.csv", encoding='euc-kr')
 
     # 등급별 점수 및 STTR 보정치 적용
     base_scores = {1: 4, 2: 3, 3: 2, 4: 1}
