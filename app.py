@@ -80,7 +80,7 @@ def image_to_text_google_vision(image_file):
 # Streamlit 앱 시작
 st.title("📚 온독AI: 사고도구어 기반 독서지수 분석")
 
-image_file = st.file_uploader("📷 또는 이미지에서 텍스트 추출 (OCR)", type=['png', 'jpg', 'jpeg'])
+image_file = st.file_uploader("📷 또는 이미지에서 텍스트 추출 (OCR)", type=['png', 'jpg', 'jpeg', 'heic'])
 if image_file:
     extracted_text = image_to_text_google_vision(image_file)
     st.text_area("📝 OCR 추출 결과:", value=extracted_text, height=150, key="ocr_output")
@@ -113,5 +113,3 @@ if run_button and text_input:
         st.markdown("---")
         st.subheader("🧠 LLaMA3 요약 분석 결과")
         st.write(llama3_summary(text_input))
-
-
