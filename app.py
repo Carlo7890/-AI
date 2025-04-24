@@ -78,11 +78,10 @@ if run_button and text_input:
         # 1부터 시작하는 번호 열 추가
         display_df = matched_df[['단어', '등급']].copy()
         display_df.insert(0, '번호', range(1, len(display_df) + 1))
-        st.dataframe(display_df)
+        st.dataframe(display_df.set_index('번호'))
 
         st.markdown("---")
         st.subheader("🧠 LLaMA3 요약 분석 결과")
         st.write(llama3_summary(text_input))
-
 
 
