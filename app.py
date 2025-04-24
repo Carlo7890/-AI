@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import re
 import requests
+import base64
+import json
 
 # CSV 불러오기
 @st.cache_data
@@ -38,7 +40,7 @@ def calculate_ondok_score_advanced(text, matched_df, grade_ranges):
 # Groq 기반 LLaMA3 요약 기능
 def llama3_summary(text):
     headers = {
-        "Authorization": f"Bearer YOUR_GROQ_API_KEY",
+        "Authorization": f"Bearer {st.secrets['groq_api_key']}",
         "Content-Type": "application/json"
     }
     payload = {
@@ -54,10 +56,38 @@ def llama3_summary(text):
     except:
         return "LLM 요약에 실패했습니다."
 
+# Google Vision OCR
+
+def image_to_text_google_vision(image_file):
+    api_key = st.secrets["google_api_key"]
+    content = base64.b64encode(image_file.read()).decode("utf-8")
+    body = json.dumps({
+        "requests": [{
+            "image": {"content": content},
+            "features": [{"type": "TEXT_DETECTION"}]
+        }]
+    })
+    response = requests.post(
+        f"https://vision.googleapis.com/v1/images:annotate?key={api_key}",
+        headers={"Content-Type": "application/json"},
+        data=body
+    )
+    try:
+        return response.json()['responses'][0]['fullTextAnnotation']['text']
+    except:
+        return ""
+
 # Streamlit 앱 시작
 st.title("📚 온독AI: 사고도구어 기반 독서지수 분석")
 
-text_input = st.text_area("✍️ 분석할 문장을 입력하세요:")
+image_file = st.file_uploader("📷 또는 이미지에서 텍스트 추출 (OCR)", type=['png', 'jpg', 'jpeg'])
+if image_file:
+    extracted_text = image_to_text_google_vision(image_file)
+    st.text_area("📝 OCR 추출 결과:", value=extracted_text, height=150, key="ocr_output")
+    text_input = extracted_text
+else:
+    text_input = st.text_area("✍️ 분석할 문장을 입력하세요:")
+
 run_button = st.button("🔍 분석하기")
 
 if run_button and text_input:
