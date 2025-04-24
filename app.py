@@ -128,3 +128,4 @@ if run_button and text_input:
         st.write(', '.join(used_list))
     else:
         st.warning("사고도구어가 발견되지 않았어요.")
+
