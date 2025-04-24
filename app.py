@@ -119,6 +119,10 @@ if run_button and text_input:
         st.markdown("---")
         st.success(f"🧠 온독지수: {score}점")
         st.info(f"🎓 추정 학년 수준: {level}")
+        st.markdown("---")
+        st.subheader("🔍 사용된 사고도구어")
+        used_list = [f"{row['단어']}/{row['등급']}등급" for _, row in matched_df.iterrows()]
+        st.write(', '.join(used_list))
     else:
         st.warning("사고도구어가 발견되지 않았어요.")
 
