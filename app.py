@@ -100,8 +100,6 @@ if run_button and text_input:
     word_list = words_df['단어'].tolist()
 
     llama_output = llama3_extract_csv_concepts(text_input, word_list)
-    st.markdown("---")
-    st.subheader("📄 추출된 사고도구어 분석 결과")
 
     matched_words = []
     for line in llama_output.split(','):
@@ -118,8 +116,10 @@ if run_button and text_input:
     if any(not df.empty for df in matched_words):
         matched_df = pd.concat([df for df in matched_words if not df.empty]).drop_duplicates().reset_index(drop=True)
         score, level = calculate_ondok_score_from_words(matched_df, score_df)
+        st.markdown("---")
         st.success(f"🧠 온독지수: {score}점")
         st.info(f"🎓 추정 학년 수준: {level}")
     else:
         st.warning("사고도구어가 발견되지 않았어요.")
+
 
