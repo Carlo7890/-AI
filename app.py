@@ -27,20 +27,29 @@ def calculate_ondok_score_from_words(matched_df, score_df):
             return round(score), row['대상 학년']
     return round(score), "해석 불가"
 
-# LLaMA3 사고도구어 추출 (CSV 기반 필터)
+# LLaMA3 사고도구어 추출 (CSV 기반 + 중의어 처리)
 def llama3_extract_csv_concepts(text, word_list):
     headers = {
         "Authorization": f"Bearer {st.secrets['groq_api_key']}",
         "Content-Type": "application/json"
     }
+    ambiguous_guide = """
+    다음 단어들은 문맥에 따라 등급이 다르므로, 문장에서 어떤 의미로 쓰였는지를 판단하여 해당 의미와 등급을 선택하세요:
+    - 기술: 2등급 (기능/방법), 3등급 (기록/서술)
+    - 유형: 2등급 (갈래), 3등급 (형상)
+    - 의지: 2등급 (결심), 3등급 (기대다)
+    - 지적: 2등급 (지시), 3등급 (지성)
+    """
     prompt = f"""
-    다음 문장에서 사고도구어를 추출하되, 반드시 다음 목록에 포함된 단어만 사용하세요:
+    다음 문장에서 사고도구어를 추출하세요. 반드시 아래 목록에 포함된 단어만 사용할 수 있습니다:
     {', '.join(word_list)}
 
-    출력은 표 형식으로, 다음 항목을 포함하세요:
-    번호 / 단어 / 등급 (예상) / 사전적 의미 / 비슷한 말 / 반대말
+    {ambiguous_guide}
 
-    영어는 절대 사용하지 말고, 반드시 한국어로 작성하세요.
+    출력은 표 형식으로 다음 항목을 포함하세요:
+    번호 / 단어 / 등급 / 선택한 의미 / 비슷한 말 / 반대말
+    반드시 한국어로만 작성하세요.
+
     문장:
     {text}
     """
@@ -100,7 +109,7 @@ if run_button and text_input:
     llama_output = llama3_extract_csv_concepts(text_input, word_list)
     st.write(llama_output)
 
-    # 간단한 사고도구어 추출 (CSV 기반 단어만 필터링)
+    # CSV 기반 단어만 추출
     found_words = [word for word in word_list if word in text_input]
     matched_df = words_df[words_df['단어'].isin(found_words)].copy()
     matched_df.insert(0, '번호', range(1, len(matched_df) + 1))
