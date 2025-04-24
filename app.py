@@ -35,10 +35,14 @@ def llama3_extract_csv_concepts(text, word_list):
     }
     ambiguous_guide = """
     다음 단어들은 문맥에 따라 등급이 다르므로, 문장에서 어떤 의미로 쓰였는지를 판단하여 해당 의미와 등급을 선택하세요:
-    - 기술: 2등급 (기능/방법), 3등급 (기록/서술)
-    - 유형: 2등급 (갈래), 3등급 (형상)
-    - 의지: 2등급 (결심), 3등급 (기대다)
-    - 지적: 2등급 (지시), 3등급 (지성)
+    - 기술: 2등급 기술1: 사물을 잘 다룰 수 있는 방법이나 능력(기능/방법).
+            3등급 기술3: 열거하거나 기록하여 서술함(기록/서술).
+    - 유형: 2등급 유형7: 성질이나 특징 따위가 공통적인 것끼리 묶은 하나의 틀(갈래).
+            3등급 유형2: 형상이나 형체가 있음.
+    - 의지: 2등급 의지6: 어떠한 일을 이루고자 하는 마음(결심).
+            3등급 의지4: 다른 것에 몸을 기대거나 마음을 기대어 도움을 받음.
+    - 지적: 2등급 지적5: 꼭 집어서 가리킴(지목/지시).
+            3등급 지적1: 지식이나 지성에 관한 것(지성적).
     """
     prompt = f"""
     다음 문장에서 사고도구어를 추출하세요. 반드시 아래 목록에 포함된 단어만 사용할 수 있습니다:
@@ -123,8 +127,8 @@ if run_button and text_input:
             except:
                 continue
 
-    if matched_words:
-        matched_df = pd.concat(matched_words).drop_duplicates().reset_index(drop=True)
+    if any(not df.empty for df in matched_words):
+        matched_df = pd.concat([df for df in matched_words if not df.empty]).drop_duplicates().reset_index(drop=True)
         matched_df.insert(0, '번호', range(1, len(matched_df) + 1))
 
         score, level = calculate_ondok_score_from_words(matched_df, score_df)
@@ -132,5 +136,6 @@ if run_button and text_input:
         st.info(f"🎓 추정 학년 수준: {level}")
         st.dataframe(matched_df.set_index('번호')[['단어', '등급']])
     else:
-        st.warning("사고도구어가 발견되지 않았어요.")
+        st.warning("사고도구어가 발견되지 않았어요."))
+
 
