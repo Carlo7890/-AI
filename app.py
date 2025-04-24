@@ -13,9 +13,10 @@ def load_data():
     score_df[['min', 'max']] = score_df['온독지수 범위'].str.split('~', expand=True).astype(int)
     return words_df, score_df
 
-# 텍스트에서 사고도구어 추출
-def extract_words(text, word_list):
-    return [word for word in word_list if word in text]
+# 정확한 일치 단어만 추출
+def extract_exact_words(text, word_list):
+    tokens = re.findall(r"[\w가-힣]+", text)
+    return [word for word in tokens if word in word_list]
 
 # 온독지수 계산 개선 버전 (CTTR, 밀도 반영)
 def calculate_ondok_score_advanced(text, matched_df, grade_ranges):
@@ -37,24 +38,34 @@ def calculate_ondok_score_advanced(text, matched_df, grade_ranges):
     level = "~".join(matched) if matched else "해석 불가"
     return round(index), level, seen, total, len(word_tokens)
 
-# Groq 기반 LLaMA3 요약 기능
-def llama3_summary(text):
+# Groq 기반 LLaMA3 사고도구어 분석 기능
+
+def llama3_extract_concepts(text):
     headers = {
         "Authorization": f"Bearer {st.secrets['groq_api_key']}",
         "Content-Type": "application/json"
     }
+    prompt = f"""
+    다음 글에서 사고도구어를 추출해줘. 각 단어마다 다음 정보를 표 형식으로 작성해줘:
+    번호 / 단어 / 등급(1~4 중 예상) / 사전적 의미 / 비슷한 말 / 반대말
+
+    문장:
+    {text}
+
+    결과는 반드시 한글로 출력해줘.
+    """
     payload = {
         "model": "llama3-70b-8192",
         "messages": [
-            {"role": "system", "content": "당신은 초등학생을 위한 독서지수 분석 전문가입니다."},
-            {"role": "user", "content": f"다음 문장에서 사용된 사고도구어와 의미를 간단히 분석해줘:\n{text}"}
+            {"role": "system", "content": "당신은 초등학생을 위한 사고도구어 분석 전문가입니다."},
+            {"role": "user", "content": prompt}
         ]
     }
     try:
         res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
         return res.json()['choices'][0]['message']['content']
     except:
-        return "LLM 요약에 실패했습니다."
+        return "LLaMA3 요약 실패 또는 키 오류"
 
 # Google Vision OCR
 
@@ -93,7 +104,7 @@ run_button = st.button("🔍 분석하기")
 if run_button and text_input:
     words_df, score_df = load_data()
     word_list = words_df['단어'].tolist()
-    used_words = extract_words(text_input, word_list)
+    used_words = extract_exact_words(text_input, word_list)
     matched_df = words_df[words_df['단어'].isin(used_words)].copy()
 
     if matched_df.empty:
@@ -111,5 +122,5 @@ if run_button and text_input:
         st.dataframe(display_df.set_index('번호'))
 
         st.markdown("---")
-        st.subheader("🧠 LLaMA3 요약 분석 결과")
-        st.write(llama3_summary(text_input))
+        st.subheader("🧠 LLaMA3 사고도구어 분석 결과")
+        st.write(llama3_extract_concepts(text_input))
