@@ -104,8 +104,7 @@ if run_button and text_input:
     st.code(llama_output)
 
     matched_words = []
-    for line in re.split(r'[,
-]', llama_output):
+    for line in re.split(r'[,\n]', llama_output):
         parts = line.strip().split('/')
         if len(parts) == 2:
             word = parts[0].strip()
