@@ -103,7 +103,6 @@ if run_button and text_input:
 
     matched_words = []
     for line in re.split(r'[,
-]'
 ]', llama_output):
         parts = line.strip().split('/')
         if len(parts) == 2:
