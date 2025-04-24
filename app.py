@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import re
+import requests
 
 # CSV 불러오기
 @st.cache_data
@@ -41,6 +42,26 @@ def estimate_grade(score, score_df):
             return row['대상 학년']
     return "범위 외"
 
+# Groq 기반 LLaMA3 요약 기능
+
+def llama3_summary(text):
+    headers = {
+        "Authorization": f"Bearer YOUR_GROQ_API_KEY",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama3-70b-8192",
+        "messages": [
+            {"role": "system", "content": "당신은 초등학생을 위한 독서지수 분석 전문가입니다."},
+            {"role": "user", "content": f"다음 문장에서 사용된 사고도구어와 의미를 간단히 분석해줘:\n{text}"}
+        ]
+    }
+    try:
+        res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
+        return res.json()['choices'][0]['message']['content']
+    except:
+        return "LLM 요약에 실패했습니다."
+
 # Streamlit 앱 시작
 st.title("📚 온독AI: 사고도구어 기반 독서지수 분석")
 
@@ -63,4 +84,9 @@ if run_button and text_input:
         st.success(f"🧠 온독지수: {score:.1f}점")
         st.info(f"🎓 추정 학년 수준: {grade}")
         st.dataframe(matched_df[['단어', '등급']].reset_index(drop=True))
+
+        st.markdown("---")
+        st.subheader("🧠 LLaMA3 요약 분석 결과")
+        st.write(llama3_summary(text_input))
+
 
