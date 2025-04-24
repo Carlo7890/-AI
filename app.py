@@ -102,7 +102,8 @@ if run_button and text_input:
     llama_output = llama3_extract_csv_concepts(text_input, word_list)
 
     matched_words = []
-    for line in re.split(r'[\,
+    for line in re.split(r'[,
+]'
 ]', llama_output):
         parts = line.strip().split('/')
         if len(parts) == 2:
@@ -126,5 +127,3 @@ if run_button and text_input:
         st.write(', '.join(used_list))
     else:
         st.warning("사고도구어가 발견되지 않았어요.")
-
-
