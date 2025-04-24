@@ -100,10 +100,12 @@ if run_button and text_input:
     word_list = words_df['단어'].tolist()
 
     llama_output = llama3_extract_csv_concepts(text_input, word_list)
+    st.subheader("🧾 LLaMA3 출력 원문")
+    st.code(llama_output)
 
     matched_words = []
-    for line in re.split(r'[,\n]', llama_output):
-
+    for line in re.split(r'[,
+]', llama_output):
         parts = line.strip().split('/')
         if len(parts) == 2:
             word = parts[0].strip()
